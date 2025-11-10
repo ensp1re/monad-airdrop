@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 
 interface LeaderboardProps {
-  allocations: { address: string; amount: number }[];
+  allocations: { address: string; amount: number; rank: number }[];
 }
 
 export function Leaderboard({ allocations }: LeaderboardProps) {
@@ -19,6 +19,7 @@ export function Leaderboard({ allocations }: LeaderboardProps) {
       filtered = filtered.filter(item =>
         item.address.toLowerCase().includes(searchTerm.toLowerCase())
       );
+      // Filtered results maintain their original global ranks
     }
 
     // Apply amount range filter
@@ -103,41 +104,40 @@ export function Leaderboard({ allocations }: LeaderboardProps) {
           <table className="w-full">
             <thead>
               <tr className="border-b border-[#2d2d44]">
-                <th className="text-left text-gray-400 pb-3 pr-2 sm:pr-4 pl-4 sm:pl-0 text-xs sm:text-sm">Rank</th>
-                <th className="text-left text-gray-400 pb-3 pr-2 sm:pr-4 text-xs sm:text-sm">Address</th>
-                <th className="text-right text-gray-400 pb-3 pr-4 sm:pr-0 text-xs sm:text-sm">Amount (MON)</th>
+                <th className="text-left text-gray-400 pb-4 pr-3 sm:pr-6 pl-4 sm:pl-2 text-xs sm:text-sm font-medium">Rank</th>
+                <th className="text-left text-gray-400 pb-4 pr-3 sm:pr-6 text-xs sm:text-sm font-medium">Address</th>
+                <th className="text-right text-gray-400 pb-4 pr-4 sm:pr-2 text-xs sm:text-sm font-medium">Amount (MON)</th>
               </tr>
             </thead>
             <tbody>
-              {currentItems.map((item, index) => {
-                const globalRank = startIndex + index + 1;
+              {currentItems.map((item) => {
                 return (
                   <tr
                     key={item.address}
                     className="border-b border-[#2d2d44]/50 hover:bg-[#2d2d44]/30 transition-colors"
                   >
-                    <td className="py-2 sm:py-3 pr-2 sm:pr-4 pl-4 sm:pl-0">
+                    <td className="py-3 sm:py-4 pr-3 sm:pr-6 pl-4 sm:pl-2">
                       <span
-                        className={`inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-xs sm:text-sm ${
-                          globalRank === 1
+                        className={`inline-flex items-center justify-center min-w-[2.5rem] h-8 sm:min-w-[3rem] sm:h-10 px-2 rounded-lg text-xs sm:text-sm font-medium ${
+                          item.rank === 1
                             ? 'bg-yellow-500/20 text-yellow-400'
-                            : globalRank === 2
+                            : item.rank === 2
                             ? 'bg-gray-400/20 text-gray-300'
-                            : globalRank === 3
+                            : item.rank === 3
                             ? 'bg-orange-500/20 text-orange-400'
                             : 'text-gray-500'
                         }`}
                       >
-                        {globalRank}
+                        {item.rank.toLocaleString()}
                       </span>
                     </td>
-                    <td className="py-2 sm:py-3 pr-2 sm:pr-4">
-                      <code className="text-[#a78bfa] text-xs sm:text-sm">
+                    <td className="py-3 sm:py-4 pr-3 sm:pr-6">
+                      <code className="text-[#a78bfa] text-xs sm:text-sm font-mono">
                         <span className="hidden sm:inline">{item.address.slice(0, 10)}...{item.address.slice(-8)}</span>
                         <span className="sm:hidden">{item.address.slice(0, 6)}...{item.address.slice(-4)}</span>
                       </code>
                     </td>
-                    <td className="py-2 sm:py-3 text-right text-white pr-4 sm:pr-0 text-xs sm:text-sm">
+                    <td className="py-3 sm:py-4 text-right text-white pr-4 sm:pr-2 text-xs sm:text-sm font-medium">
                       {item.amount.toLocaleString()}
                     </td>
                   </tr>

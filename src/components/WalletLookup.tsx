@@ -1,20 +1,24 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Search } from 'lucide-react';
 
 interface WalletLookupProps {
   allocations: Map<string, number>;
+  sortedAllocations: { address: string; amount: number; rank: number }[];
 }
 
-export function WalletLookup({ allocations }: WalletLookupProps) {
+export function WalletLookup({ allocations, sortedAllocations }: WalletLookupProps) {
   const [address, setAddress] = useState('');
-  const [result, setResult] = useState<{ found: boolean; amount?: number } | null>(null);
+  const [result, setResult] = useState<{ found: boolean; amount?: number; rank?: number } | null>(null);
 
   const handleSearch = () => {
     const normalizedAddress = address.toLowerCase().trim();
     const amount = allocations.get(normalizedAddress);
     
     if (amount !== undefined) {
-      setResult({ found: true, amount });
+      // Find the rank for this address
+      const addressData = sortedAllocations.find(item => item.address === normalizedAddress);
+      const rank = addressData?.rank || 0;
+      setResult({ found: true, amount, rank });
     } else {
       setResult({ found: false });
     }
@@ -48,8 +52,11 @@ export function WalletLookup({ allocations }: WalletLookupProps) {
         <div className={`p-4 rounded-lg border ${result.found ? 'bg-[#7c3aed]/10 border-[#7c3aed]' : 'bg-red-500/10 border-red-500'}`}>
           {result.found ? (
             <div>
-              <div className="text-[#a78bfa] mb-1">✓ Allocation Found</div>
-              <div className="text-white text-xl sm:text-2xl">{result.amount?.toLocaleString()} MON</div>
+              <div className="text-[#a78bfa] mb-2">✓ Allocation Found</div>
+              <div className="text-white text-xl sm:text-2xl mb-2">{result.amount?.toLocaleString()} MON</div>
+              <div className="text-gray-300 text-sm">
+                Rank: #{result.rank?.toLocaleString()}
+              </div>
             </div>
           ) : (
             <div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Users,
   Coins,
@@ -14,7 +14,7 @@ import { Leaderboard } from "./components/Leaderboard";
 
 interface AirdropData {
   allocations: Map<string, number>;
-  sortedAllocations: { address: string; amount: number }[];
+  sortedAllocations: { address: string; amount: number; rank: number }[];
   totalAmount: number;
   totalWallets: number;
   avgAllocation: number;
@@ -69,12 +69,20 @@ export default function App() {
       const medianAllocation =
         sortedAmounts[Math.floor(sortedAmounts.length / 2)];
 
-      // Create sorted allocations for top list
+      // Create sorted allocations for top list with ranks
       const sortedAllocations = Array.from(
         allocations.entries(),
       )
         .map(([address, amount]) => ({ address, amount }))
-        .sort((a, b) => b.amount - a.amount);
+        .sort((a, b) => {
+          // Primary sort: by amount (descending)
+          if (b.amount !== a.amount) return b.amount - a.amount;
+          // Secondary sort: by address (ascending) for consistent tie-breaking
+          return a.address.localeCompare(b.address);
+        })
+        .map((item, index) => ({ ...item, rank: index + 1 }));
+
+      // Ranks are now pre-calculated for consistent display
 
       // Calculate distribution
       const ranges = [
@@ -203,7 +211,10 @@ export default function App() {
 
         {/* Wallet Lookup */}
         <div className="mb-8">
-          <WalletLookup allocations={data.allocations} />
+          <WalletLookup 
+            allocations={data.allocations} 
+            sortedAllocations={data.sortedAllocations}
+          />
         </div>
 
         {/* Charts */}
