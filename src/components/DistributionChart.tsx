@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { BarChart, Bar, PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend } from 'recharts';
 import { BarChart3, PieChart as PieChartIcon } from 'lucide-react';
 
@@ -16,8 +16,36 @@ const PURPLE_GRADIENT = [
   '#2d1b4e',
 ];
 
+// Custom label component for pie chart - positioned outside
+const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, range, percent }: any) => {
+  const RADIAN = Math.PI / 180;
+  const radius = outerRadius + 30; // Position text outside the pie
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  // Show all labels, even tiny slices
+  // if (percent < 0.005) return null; // Commented out to show all slices
+
+  return (
+    <text 
+      x={x} 
+      y={y} 
+      fill="#ffffff" 
+      textAnchor={x > cx ? 'start' : 'end'} 
+      dominantBaseline="central"
+      fontSize={11}
+      fontWeight={500}
+    >
+      {`${range}: ${(percent * 100).toFixed(1)}%`}
+    </text>
+  );
+};
+
 export function DistributionChart({ data }: DistributionChartProps) {
   const [chartType, setChartType] = useState<'bar' | 'pie'>('bar');
+  
+  // Filter out empty data entries for pie chart (but keep all for bar chart)
+  const pieData = data.filter(item => item.count > 0);
 
   return (
     <div className="bg-[#1a1a2e] border border-[#2d2d44] rounded-lg p-4 sm:p-6">
@@ -85,27 +113,18 @@ export function DistributionChart({ data }: DistributionChartProps) {
             </Bar>
           </BarChart>
         ) : (
-          <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
+          <PieChart margin={{ top: 20, right: 80, bottom: 20, left: 80 }}>
             <Pie
-              data={data}
+              data={pieData}
               cx="50%"
               cy="50%"
-              labelLine={false}
-              label={({ range, percent }) => (
-                <text 
-                  fill="#ffffff" 
-                  fontSize={11}
-                  fontWeight={500}
-                  textAnchor="middle"
-                >
-                  {`${range}: ${(percent * 100).toFixed(0)}%`}
-                </text>
-              )}
-              outerRadius={90}
+              labelLine={{ stroke: '#7c3aed', strokeWidth: 1 }}
+              label={renderCustomLabel}
+              outerRadius={80}
               fill="#8884d8"
               dataKey="count"
             >
-              {data.map((entry, index) => (
+              {pieData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={PURPLE_GRADIENT[index % PURPLE_GRADIENT.length]} />
               ))}
             </Pie>
